@@ -54,12 +54,12 @@ max(Data$Total_Summer/Data$Total, na.rm=T) #9444
 
 # what is 75th percentile?
 
-quantile(Data$Cdn_Nat_Spwn, 0.25)
+quantile(Data$Natural, 0.25)
 # 40 fish
 
 # Make figure for paper
 
-plot(Data$Year, Data$Cdn_Nat_Spwn, ylim = c(0,200), xlab="Year", 
+plot(Data$Year, Data$Natural, ylim = c(0,200), xlab="Year", 
      ylab = "Ok Chinook Spawners Estimate", type="o", pch=19)
 points(Data$Year, Data$MRC_Est, col="red", pch=19, cex=1.2 )
 #mtext(side = 4, "Pit-tag Mark-Recap. Estimate", col="red")
@@ -67,7 +67,7 @@ legend("topleft", legend = c("AUC Estimate", "Pit-tag Mark-recap. Estimate"),
        col = c("black", "red"), pch=19, bty="n")
 
 # Figure without M-R Estimate
-plot(Data$Year, Data$Cdn_Nat_Spwn, xlab="Year", ylim = c(0,90),
+plot(Data$Year, Data$Natural, xlab="Year", ylim = c(0,90),
      ylab = "Ok Chinook Spawners Estimate", type="o", pch=19)
 
 # Plot CYER over time
@@ -84,20 +84,22 @@ plot(CYER_Dat$Year, CYER_Dat$CYER, xlab="Year", ylim = c(0,1),
 
 library(dplyr)
 # get 2017:2021 value
-years <- 2017:2022
+# not sure how many vals we want for this? 2025 update changed to 2020-2025 
+years <- 2020:2025
+
 Pchange.raw <- NULL
 Pchange.ln <- NULL
 for(yy in 1:length(years)){
   
    Dat3Gen <- Data %>% filter(Year %in% c((years[yy]-11):years[yy]))
    n <- length(Dat3Gen$Year)
-   lm.coeff <- .lm.fit(cbind(1,1:n),Dat3Gen$Cdn_Nat_Spwn)$coefficients # uses model matrix that is usually created inside lm()
+   lm.coeff <- .lm.fit(cbind(1,1:n),Dat3Gen$Natural)$coefficients # uses model matrix that is usually created inside lm()
 
 
     Pchange.raw[yy] <- ( (lm.coeff[1]+lm.coeff[2]*n) -  (lm.coeff[1]+lm.coeff[2])) / (lm.coeff[1]+lm.coeff[2]) *100
     
     # what if log transform
-    lm.coeff.ln <- .lm.fit(cbind(1,1:n),log(Dat3Gen$Cdn_Nat_Spwn))$coefficients
+    lm.coeff.ln <- .lm.fit(cbind(1,1:n),log(Dat3Gen$Natural))$coefficients
     Pchange.ln[yy] <- (exp(lm.coeff.ln[1]+lm.coeff.ln[2]*n) -  
                   exp(lm.coeff.ln[1]+lm.coeff.ln[2])) / exp(lm.coeff.ln[1]+lm.coeff.ln[2]) *100
 }
@@ -122,9 +124,9 @@ library(zoo)
 
 gm_mean = function(a){prod(a)^(1/length(a))}
 
-Data$Geo.Avg <- c(NA, NA, NA, round(rollapply(Data$Cdn_Nat_Spwn, width=4, FUN = gm_mean) ))
+Data$Geo.Avg <- c(NA, NA, NA, round(rollapply(Data$Natural, width=4, FUN = gm_mean) ))
 
-years <- 2020:2022
+years <- 2020:2023
 Pchange.raw.geo <- NULL
 Pchange.ln.geo <- NULL
 for(yy in 1:length(years)){
@@ -145,3 +147,21 @@ for(yy in 1:length(years)){
 data.frame(Year = years, Pchange.raw.geo, Pchange.ln.geo)
 
 # must not be smoothed
+
+# Pulled from WSP metrics package
+
+
+years <- 2020:2025
+Pchange.ln.WSP <- NULL
+for(yy in 1:length(years)){
+  
+  Dat3Gen <- Data %>% filter(Year %in% c((years[yy]-11):years[yy]))
+  
+  lm<-lm(log(Dat3Gen$Natural) ~ Dat3Gen$Year)
+  y<-exp(predict(lm,as.data.frame(Dat3Gen$Year)))
+  Pchange.ln.WSP[yy] <- ((y[n]-y[1])/y[1])*100
+}
+
+# confirmed these are the same as mine above (not smoothed)
+
+
