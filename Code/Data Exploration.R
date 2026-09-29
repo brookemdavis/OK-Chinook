@@ -151,7 +151,7 @@ data.frame(Year = years, Pchange.raw.geo, Pchange.ln.geo)
 # Pulled from WSP metrics package
 
 
-years <- 2020:2025
+years <- 2020:2023
 Pchange.ln.WSP <- NULL
 for(yy in 1:length(years)){
   
@@ -164,4 +164,4 @@ for(yy in 1:length(years)){
 
 # confirmed these are the same as mine above (not smoothed)
 
-
+# can re-create -7 value for 2023 if replace 2023 11 value with 12, seems to have changed
